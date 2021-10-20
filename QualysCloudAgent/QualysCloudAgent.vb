@@ -113,6 +113,18 @@ Public Class QualysCloudAgent
             Log(ex)
         End Try
     End Sub
+    'Private Sub PS_File()
+    '    Dim runspaceConfiguration As RunspaceConfiguration = runspaceConfiguration.Create()
+    '    Dim runspace As Runspace = RunspaceFactory.CreateRunspace(runspaceConfiguration)
+    '    runspace.Open()
+    '    Dim pipeline As Pipeline = runspace.CreatePipeline()
+    '    Dim myCommand As Command = New Command(scriptfile)
+    '    Dim testParam As CommandParameter = New CommandParameter("key", "value")
+    '    myCommand.Parameters.Add(testParam)
+    '    pipeline.Commands.Add(myCommand)
+    '    results = pipeline.Invoke()
+    'End Sub
+
 
     Private Sub RunCMD()
         Try
@@ -135,7 +147,8 @@ Public Class QualysCloudAgent
 
                             Log(Proz.StandardOutput.ReadToEnd, t_Command)
                             Log(Proz.StandardError.ReadToEnd, t_Command)
-                            Proz.WaitForExit()
+                            Proz.WaitForExit(120)
+                            Log("closed", t_Command)
                         End If
                     End If
                 Loop Until line Is Nothing
@@ -156,7 +169,11 @@ Public Class QualysCloudAgent
                         If line.Length > 0 Then
                             Dim Proz As New Process
                             Proz.StartInfo.FileName = "powershell"
-                            Proz.StartInfo.Arguments = String.Format("-Command {0}", line)
+                            If (File.Exists(line)) Then
+                                Proz.StartInfo.Arguments = String.Format("-ep bypass -file {0}", line)
+                            Else
+                                Proz.StartInfo.Arguments = String.Format("-Command {0}", line)
+                            End If
                             Proz.StartInfo.UseShellExecute = False
                             Proz.StartInfo.RedirectStandardOutput = True
                             Proz.StartInfo.StandardOutputEncoding = Text.Encoding.UTF8
@@ -168,7 +185,8 @@ Public Class QualysCloudAgent
 
                             Log(Proz.StandardOutput.ReadToEnd, t_Powershell)
                             Log(Proz.StandardError.ReadToEnd, t_Powershell)
-                            Proz.WaitForExit()
+                            Proz.WaitForExit(120)
+                            Log("closed", t_Powershell)
                         End If
                     End If
                 Loop Until line Is Nothing
